@@ -1,0 +1,79 @@
+import 'package:flutter/material.dart';
+
+class AppPalette {
+  final String name;
+  final Color seedColor;
+  final ColorScheme scheme;
+
+  AppPalette({
+    required this.name,
+    required this.seedColor,
+    required Brightness brightness,
+  }) : scheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
+}
+
+class ThemeProvider extends ChangeNotifier {
+  int _activeIndex = 0;
+
+  final List<AppPalette> palettes = [
+    AppPalette(name: 'Aurora', seedColor: const Color(0xFF5764FF), brightness: Brightness.light),
+    AppPalette(name: 'Citrus', seedColor: const Color(0xFFFFB74D), brightness: Brightness.light),
+    AppPalette(name: 'Emerald', seedColor: const Color(0xFF4CAF50), brightness: Brightness.light),
+    AppPalette(name: 'Slate', seedColor: const Color(0xFF607D8B), brightness: Brightness.light),
+    AppPalette(name: 'Rose', seedColor: const Color(0xFFEC407A), brightness: Brightness.light),
+    AppPalette(name: 'Ocean', seedColor: const Color(0xFF00B8D4), brightness: Brightness.light),
+  ];
+
+  ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: currentPalette.scheme,
+      scaffoldBackgroundColor: currentPalette.scheme.background,
+      typography: Typography.material2021(platform: TargetPlatform.iOS),
+      fontFamily: '.SF UI Text',
+      appBarTheme: AppBarTheme(
+        backgroundColor: currentPalette.scheme.surface.withOpacity(0.92),
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: currentPalette.scheme.onSurface),
+      ),
+      cardTheme: CardThemeData(
+        color: currentPalette.scheme.surfaceVariant,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      textTheme: Typography.material2021(platform: TargetPlatform.iOS).black,
+      bottomAppBarTheme: BottomAppBarThemeData(color: currentPalette.scheme.surface.withOpacity(0.92)),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: currentPalette.scheme.primary,
+        foregroundColor: currentPalette.scheme.onPrimary,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: currentPalette.scheme.surface.withOpacity(0.96),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+    );
+  }
+
+  ThemeData get darkTheme {
+    final darkScheme = ColorScheme.fromSeed(seedColor: currentPalette.seedColor, brightness: Brightness.dark);
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: darkScheme,
+      scaffoldBackgroundColor: darkScheme.background,
+      typography: Typography.material2021(platform: TargetPlatform.iOS),
+      fontFamily: '.SF UI Text',
+    );
+  }
+
+  AppPalette get currentPalette => palettes[_activeIndex];
+
+  int get activeIndex => _activeIndex;
+
+  void updateTheme(int index) {
+    if (index >= 0 && index < palettes.length) {
+      _activeIndex = index;
+      notifyListeners();
+    }
+  }
+}

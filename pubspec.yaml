@@ -1,0 +1,26 @@
+name: memories_app
+description: A polished gallery app with Material 3, Cupertino typography, photo albums, trash bin, and SVG support.
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.9
+  flutter_svg: ^2.0.7
+  image_picker: ^0.8.7+5
+  cupertino_icons: ^1.0.5
+  google_fonts: ^5.0.0
+  animations: ^2.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
