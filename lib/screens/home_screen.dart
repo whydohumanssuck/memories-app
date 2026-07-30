@@ -24,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  
   void _showSearch(BuildContext context) {
     showSearch(
       context: context,
@@ -32,11 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-    void _showAddPhoto(BuildContext context) async {
-    // Use image_picker to add photos from device
+  void _showAddPhoto(BuildContext context) async {
     final picker = Provider.of<GalleryProvider>(context, listen: false);
     final ImagePicker imagePicker = ImagePicker();
-    
+
     // Show dialog to choose camera or gallery
     final source = await showDialog<ImageSource>(
       context: context,
@@ -55,14 +53,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
-    
+
     if (source == null) return;
-    
+
     final XFile? pickedFile = await imagePicker.pickImage(
       source: source,
       imageQuality: 85,
     );
-    
+
     if (pickedFile != null && context.mounted) {
       final album = picker.selectedAlbum;
       if (album != null) {
@@ -105,6 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer<GalleryProvider>(
       builder: (context, gallery, child) {
         final currentAlbum = gallery.selectedAlbum;
@@ -115,8 +114,12 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverAppBar(
                 pinned: true,
                 floating: true,
-                backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.86),
-                title: const Text('Memories!'),
+                backgroundColor: isDark ? Colors.transparent : Theme.of(context).colorScheme.surface.withOpacity(0.86),
+                title: Text(
+                  'Memories!',
+                  style: TextStyle(color: isDark ? Colors.white : null),
+                ),
+                iconTheme: IconThemeData(color: isDark ? Colors.white : null),
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.add_photo_alternate_outlined),
@@ -135,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           : Icons.favorite_border,
                       color: gallery.showFavoritesOnly
                           ? Colors.red
-                          : null,
+                          : (isDark ? Colors.white : null),
                     ),
                     onPressed: () => gallery.toggleShowFavorites(),
                     tooltip: 'Favorites',
@@ -155,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         '${gallery.totalPhotos} photos',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          color: isDark ? Colors.white60 : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                       const Spacer(),
@@ -178,7 +181,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         currentAlbum?.title ?? 'No Album',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : null,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SizedBox(

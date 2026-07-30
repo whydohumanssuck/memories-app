@@ -32,6 +32,7 @@ class Photo {
       url: url ?? this.url,
       albumId: albumId ?? this.albumId,
       isSvg: isSvg ?? this.isSvg,
+      isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: deletedAt ?? this.deletedAt,
     );
   }

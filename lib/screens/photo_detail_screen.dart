@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,6 +11,7 @@ class PhotoDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLocal = !photo.url.startsWith('http');
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -21,7 +21,13 @@ class PhotoDetailScreen extends StatelessWidget {
               tag: photo.id,
               child: photo.isSvg
                   ? SvgPicture.network(photo.url, fit: BoxFit.contain)
-                  : Image.network(photo.url, fit: BoxFit.contain),
+                  : Image(
+                      image: isLocal
+                          ? FileImage(File(photo.url)) as ImageProvider
+                          : NetworkImage(photo.url),
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 64),
+                    ),
             ),
           ),
           Positioned(
@@ -30,7 +36,7 @@ class PhotoDetailScreen extends StatelessWidget {
             bottom: 0,
             child: ClipRect(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Container(
                   color: Colors.black.withOpacity(0.35),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),

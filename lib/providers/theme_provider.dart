@@ -59,17 +59,58 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   ThemeData get darkTheme {
-    final darkScheme = ColorScheme.fromSeed(seedColor: currentPalette.seedColor, brightness: Brightness.dark);
     final isAmoled = currentPalette.name == 'AMOLED Black';
     final isMidnight = currentPalette.name == 'Midnight Black';
-    final Color bgColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0A0A0F) : darkScheme.background);
+    final Color bgColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0A0A0F) : currentPalette.scheme.background);
+    final Color surfaceColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0D0D14) : currentPalette.scheme.surface);
+    final Color onBgColor = Colors.white;
+
+    final darkScheme = ColorScheme.fromSeed(
+      seedColor: currentPalette.seedColor,
+      brightness: Brightness.dark,
+    ).copyWith(
+      background: bgColor,
+      surface: surfaceColor,
+      onBackground: onBgColor,
+      onSurface: Colors.white,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: darkScheme.copyWith(background: bgColor, surface: isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0D0D14) : darkScheme.surface)),
+      colorScheme: darkScheme,
       scaffoldBackgroundColor: bgColor,
       typography: Typography.material2021(platform: TargetPlatform.iOS),
       fontFamily: '.SF UI Text',
-      appBarTheme: AppBarTheme(backgroundColor: bgColor.withOpacity(0.92), elevation: 0, centerTitle: true),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+      ),
+      textTheme: Typography.material2021(platform: TargetPlatform.iOS).white,
+      primaryTextTheme: Typography.material2021(platform: TargetPlatform.iOS).white,
+      cardTheme: CardThemeData(
+        color: surfaceColor.withOpacity(0.85),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.transparent,
+        indicatorColor: darkScheme.primary,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return Colors.white;
+          return Colors.white70;
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return const TextStyle(color: Colors.white, fontSize: 12);
+          return const TextStyle(color: Colors.white60, fontSize: 12);
+        }),
+      ),
     );
   }
 

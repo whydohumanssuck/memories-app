@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/photo.dart';
@@ -71,11 +73,14 @@ class PhotoSearchDelegate extends SearchDelegate<Photo?> {
       itemCount: results.length,
       itemBuilder: (context, index) {
         final photo = results[index];
+        final ImageProvider imgProvider = photo.url.startsWith('http')
+            ? NetworkImage(photo.url)
+            : FileImage(File(photo.url));
         return ListTile(
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              photo.url,
+            child: Image(
+              image: imgProvider,
               width: 48,
               height: 48,
               fit: BoxFit.cover,
@@ -94,7 +99,6 @@ class PhotoSearchDelegate extends SearchDelegate<Photo?> {
             ),
             onPressed: () {
               gallery.toggleFavorite(photo.id);
-              // The search results will update
               (context as Element).markNeedsBuild();
             },
           ),

@@ -5,7 +5,6 @@ import 'providers/theme_provider.dart';
 import 'screens/bin_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
-import 'widgets/frosted_bar.dart';
 
 class MemoriesApp extends StatelessWidget {
   const MemoriesApp({super.key});
@@ -19,7 +18,7 @@ class MemoriesApp extends StatelessWidget {
           title: 'Memories!',
           theme: theme.lightTheme,
           darkTheme: theme.darkTheme,
-          themeMode: ThemeMode.light,
+          themeMode: theme.activeIndex >= 6 ? ThemeMode.dark : ThemeMode.light,
           home: const AppShell(),
         );
       },
@@ -35,6 +34,9 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  int _selectedIndex = 0;
+  late final PageController _pageController;
+
   @override
   void initState() {
     super.initState();
@@ -46,8 +48,6 @@ class _AppShellState extends State<AppShell> {
     _pageController.dispose();
     super.dispose();
   }
-  int _selectedIndex = 0;
-  late final PageController _pageController;
 
   final List<Widget> _screens = const [
     HomeScreen(),
@@ -59,14 +59,15 @@ class _AppShellState extends State<AppShell> {
     if (index == _selectedIndex) return;
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOutCubic,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
     );
     setState(() => _selectedIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       extendBody: true,
       body: PageView(
@@ -80,8 +81,8 @@ class _AppShellState extends State<AppShell> {
           borderRadius: BorderRadius.circular(36),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 16,
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
@@ -89,11 +90,13 @@ class _AppShellState extends State<AppShell> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(36),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(36),
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.82),
+                color: isDark
+                    ? const Color(0xFF0D0D14).withOpacity(0.88)
+                    : Theme.of(context).colorScheme.surface.withOpacity(0.82),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
                 ),

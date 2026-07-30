@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/album.dart';
-import '../models/photo.dart';
 import '../providers/gallery_provider.dart';
 
 class AlbumCard extends StatelessWidget {
@@ -23,6 +22,7 @@ class AlbumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final gallery = Provider.of<GalleryProvider>(context, listen: false);
     final coverPhoto = gallery.findPhotoById(album.coverPhotoId);
     final hasCover = album.coverPhotoId.isNotEmpty && coverPhoto != null;
@@ -37,7 +37,7 @@ class AlbumCard extends StatelessWidget {
               width: 160,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: isDark ? const Color(0xFF1E1E24).withOpacity(0.6) : Theme.of(context).colorScheme.surfaceVariant,
                 border: Border.all(
                   color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
                   width: 2,
@@ -51,20 +51,20 @@ class AlbumCard extends StatelessWidget {
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                       child: hasCover
                           ? Image(
-                                image: coverPhoto.url.startsWith('http')
+                                image: coverPhoto!.url.startsWith('http')
                                     ? NetworkImage(coverPhoto.url) as ImageProvider
                                     : FileImage(File(coverPhoto.url)),
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => Container(
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(Icons.broken_image),
+                                  color: Colors.grey.shade800,
+                                  child: const Icon(Icons.broken_image, color: Colors.white54),
                                 ),
                               )
                           : Container(
                               alignment: Alignment.center,
-                              color: Theme.of(context).colorScheme.primaryContainer,
-                              child: const Icon(Icons.photo, size: 36),
+                              color: isDark ? const Color(0xFF2A2A35) : Theme.of(context).colorScheme.primaryContainer,
+                              child: Icon(Icons.photo, size: 36, color: isDark ? Colors.white38 : null),
                             ),
                     ),
                   ),
@@ -73,9 +73,21 @@ class AlbumCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(album.title, style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          album.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : null,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text('Tap to open', style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          'Tap to open',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white60 : Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -86,7 +98,7 @@ class AlbumCard extends StatelessWidget {
               top: 10,
               right: 10,
               child: PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, size: 18),
+                icon: Icon(Icons.more_vert, size: 18, color: isDark ? Colors.white70 : null),
                 itemBuilder: (context) => [
                   const PopupMenuItem(value: 'rename', child: Text('Rename')),
                   const PopupMenuItem(value: 'remove', child: Text('Delete')),

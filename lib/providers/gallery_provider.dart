@@ -12,44 +12,13 @@ class GalleryProvider extends ChangeNotifier {
     _showFavoritesOnly = !_showFavoritesOnly;
     notifyListeners();
   }
+
   final List<Album> _albums = [];
   final List<Photo> _trash = [];
   String? _selectedAlbumId;
 
   GalleryProvider() {
-    _addSamplePhotos();
-  }
-
-  void _addSamplePhotos() {
-    final album = Album(id: 'album-default', title: 'My Photos', coverPhotoId: '');
-    _albums.add(album);
-    _selectedAlbumId = album.id;
-  }
-
-  List<Album> get albums => List.unmodifiable(_albums);
-  List<Photo> get trash => List.unmodifiable(_trash);
-  List<Photo> get photos => List.unmodifiable(_photos);
-
-  Album? get selectedAlbum {
-    if (_albums.isEmpty || _selectedAlbumId == null) return null;
-    return _albums.firstWhere(
-      (album) => album.id == _selectedAlbumId,
-      orElse: () => _albums.first,
-    );
-  }
-
-  List<Photo> get selectedPhotos {
-    if (selectedAlbum == null) return [];
-    var photos = _photosForAlbum(selectedAlbum!.id);
-    if (_showFavoritesOnly) {
-      photos = photos.where((p) => p.isFavorite).toList();
-    }
-    return photos;
-  }
-
-  Photo? findPhotoById(String id) {
-    final match = _photos.where((photo) => photo.id == id);
-    return match.isEmpty ? null : match.first;
+    _initializeSampleLibrary();
   }
 
   void _initializeSampleLibrary() {
@@ -108,6 +77,32 @@ class GalleryProvider extends ChangeNotifier {
   }
 
   final List<Photo> _photos = [];
+
+  List<Album> get albums => List.unmodifiable(_albums);
+  List<Photo> get trash => List.unmodifiable(_trash);
+  List<Photo> get photos => List.unmodifiable(_photos);
+
+  Album? get selectedAlbum {
+    if (_albums.isEmpty || _selectedAlbumId == null) return null;
+    return _albums.firstWhere(
+      (album) => album.id == _selectedAlbumId,
+      orElse: () => _albums.first,
+    );
+  }
+
+  List<Photo> get selectedPhotos {
+    if (selectedAlbum == null) return [];
+    var photos = _photosForAlbum(selectedAlbum!.id);
+    if (_showFavoritesOnly) {
+      photos = photos.where((p) => p.isFavorite).toList();
+    }
+    return photos;
+  }
+
+  Photo? findPhotoById(String id) {
+    final match = _photos.where((photo) => photo.id == id);
+    return match.isEmpty ? null : match.first;
+  }
 
   List<Photo> _photosForAlbum(String albumId) {
     return _photos.where((photo) => photo.albumId == albumId).toList();
@@ -171,7 +166,6 @@ class GalleryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  
   void toggleFavorite(String photoId) {
     final index = _photos.indexWhere((photo) => photo.id == photoId);
     if (index >= 0) {

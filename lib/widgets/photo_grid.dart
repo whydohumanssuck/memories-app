@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/photo.dart';
 
 class PhotoGrid extends StatelessWidget {
@@ -41,6 +40,9 @@ class PhotoGrid extends StatelessWidget {
       delegate: SliverChildBuilderDelegate(
         (context, index) {
           final photo = photos[index];
+          final ImageProvider imgProvider = photo.url.startsWith('http')
+              ? NetworkImage(photo.url)
+              : FileImage(File(photo.url));
           return GestureDetector(
             onTap: () => onPhotoTap(photo),
             child: Hero(
@@ -50,7 +52,14 @@ class PhotoGrid extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(photo.url, fit: BoxFit.cover),
+                    Image(
+                      image: imgProvider,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey.shade900,
+                        child: const Icon(Icons.broken_image, color: Colors.white54),
+                      ),
+                    ),
                     Positioned(
                       left: 0,
                       right: 0,
