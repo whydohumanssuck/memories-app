@@ -49,7 +49,7 @@ class AlbumCard extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                       child: hasCover
-                          ? Image.network(coverPhoto.url, width: double.infinity, fit: BoxFit.cover)
+                          ? Image(coverPhoto.url, width: double.infinity, fit: BoxFit.cover)
                           : Container(
                               alignment: Alignment.center,
                               color: Theme.of(context).colorScheme.primaryContainer,

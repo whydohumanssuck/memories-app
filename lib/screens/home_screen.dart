@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/photo.dart';
 import '../providers/gallery_provider.dart';
@@ -29,6 +30,45 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       delegate: PhotoSearchDelegate(),
     );
+  }
+
+    void _showAddPhoto(BuildContext context) async {
+    // Use image_picker to add photos from device
+    final picker = Provider.of<GalleryProvider>(context, listen: false);
+    final ImagePicker imagePicker = ImagePicker();
+    
+    // Show dialog to choose camera or gallery
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Photo'),
+        content: const Text('Choose a source'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, ImageSource.camera),
+            child: const Text('Camera'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, ImageSource.gallery),
+            child: const Text('Gallery'),
+          ),
+        ],
+      ),
+    );
+    
+    if (source == null) return;
+    
+    final XFile? pickedFile = await imagePicker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+    
+    if (pickedFile != null && context.mounted) {
+      final album = picker.selectedAlbum;
+      if (album != null) {
+        picker.addPhotoFromFile(album.id, pickedFile);
+      }
+    }
   }
 
   void _showCreateAlbumDialog(BuildContext context) {
@@ -78,6 +118,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.86),
                 title: const Text('Memories!'),
                 actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add_photo_alternate_outlined),
+                    onPressed: () => _showAddPhoto(context),
+                    tooltip: 'Add photo',
+                  ),
                   IconButton(
                     icon: const Icon(Icons.search),
                     onPressed: () => _showSearch(context),

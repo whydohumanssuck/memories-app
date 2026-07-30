@@ -89,11 +89,11 @@ class _AppShellState extends State<AppShell> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(36),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(36),
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.68),
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.82),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
                 ),

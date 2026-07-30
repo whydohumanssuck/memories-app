@@ -30,8 +30,8 @@ class SettingsScreen extends StatelessWidget {
                       return ClipRRect(
                         child: BackdropFilter(
                           filter: ImageFilter.blur(
-                            sigmaX: 15 * value,
-                            sigmaY: 15 * value,
+                            sigmaX: 8 * value,
+                            sigmaY: 8 * value,
                           ),
                           child: Container(
                             decoration: BoxDecoration(
@@ -55,19 +55,16 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Liquid glass transition spacer
+                // iOS-style top spacer with rounded corners
                 SliverToBoxAdapter(
                   child: Container(
-                    height: 1,
+                    height: 8,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                          Theme.of(context).colorScheme.surface.withOpacity(0.0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
                       ),
+                      color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
                     ),
                   ),
                 ),
@@ -109,9 +106,23 @@ class SettingsScreen extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(height: 12),
-                                    Text(palette.name, style: Theme.of(context).textTheme.titleMedium),
+                                    Text(
+                              palette.name,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: palette.scheme.brightness == Brightness.dark
+                                    ? Colors.white
+                                    : null,
+                              ),
+                            ),
                                     const SizedBox(height: 6),
-                                    Text('Tap to apply', style: Theme.of(context).textTheme.bodySmall),
+                                    Text(
+                              'Tap to apply',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: palette.scheme.brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : null,
+                              ),
+                            ),
                                   ],
                                 ),
                               ),
@@ -158,7 +169,9 @@ class SettingsScreen extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const Text('Custom app icon', style: TextStyle(fontWeight: FontWeight.w600)),
-                                        const Text('(Preview only - Android limits custom icons)', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                        const Text('Android does not support changing app icons at runtime', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                        const SizedBox(height: 4),
+                                        Text('Use a custom launcher like Nova to change icons', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
                                       const SizedBox(height: 4),
                                       Text(
                                         settings.customIconFile != null ? 'Selected from gallery' : 'Choose an image to personalize',

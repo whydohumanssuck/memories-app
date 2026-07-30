@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/gallery_provider.dart';
@@ -57,9 +58,16 @@ class BinScreen extends StatelessWidget {
                               child: SizedBox(
                                 width: 60,
                                 height: 60,
-                                child: item.isSvg
-                                    ? Image.network(item.url, fit: BoxFit.cover)
-                                    : Image.network(item.url, fit: BoxFit.cover),
+                                child: Image(
+                                  image: item.url.startsWith('http')
+                                      ? NetworkImage(item.url) as ImageProvider
+                                      : FileImage(File(item.url)),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(Icons.broken_image, size: 24),
+                                  ),
+                                ),
                               ),
                             ),
                             title: Text(item.title),

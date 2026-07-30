@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/album.dart';
 import '../models/photo.dart';
 
@@ -15,7 +16,15 @@ class GalleryProvider extends ChangeNotifier {
   final List<Photo> _trash = [];
   String? _selectedAlbumId;
 
-  GalleryProvider();
+  GalleryProvider() {
+    _addSamplePhotos();
+  }
+
+  void _addSamplePhotos() {
+    final album = Album(id: 'album-default', title: 'My Photos', coverPhotoId: '');
+    _albums.add(album);
+    _selectedAlbumId = album.id;
+  }
 
   List<Album> get albums => List.unmodifiable(_albums);
   List<Photo> get trash => List.unmodifiable(_trash);
@@ -183,6 +192,16 @@ class GalleryProvider extends ChangeNotifier {
 
   int get totalPhotos => _photos.length;
   int get favoriteCount => _photos.where((p) => p.isFavorite).length;
+
+  void addPhotoFromFile(String albumId, XFile file) {
+    final photo = Photo(
+      id: 'photo-${DateTime.now().millisecondsSinceEpoch}',
+      title: file.name.split('.').first,
+      url: file.path,
+      albumId: albumId,
+    );
+    addPhoto(albumId, photo);
+  }
 
   void addPhoto(String albumId, Photo photo) {
     _photos.add(photo.copyWith(albumId: albumId));
