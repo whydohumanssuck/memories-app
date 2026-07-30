@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/album.dart';
@@ -49,7 +50,17 @@ class AlbumCard extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                       child: hasCover
-                          ? Image(coverPhoto.url, width: double.infinity, fit: BoxFit.cover)
+                          ? Image(
+                                image: coverPhoto.url.startsWith('http')
+                                    ? NetworkImage(coverPhoto.url) as ImageProvider
+                                    : FileImage(File(coverPhoto.url)),
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(Icons.broken_image),
+                                ),
+                              )
                           : Container(
                               alignment: Alignment.center,
                               color: Theme.of(context).colorScheme.primaryContainer,
