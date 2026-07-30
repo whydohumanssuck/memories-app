@@ -3,6 +3,14 @@ import '../models/album.dart';
 import '../models/photo.dart';
 
 class GalleryProvider extends ChangeNotifier {
+  bool _showFavoritesOnly = false;
+
+  bool get showFavoritesOnly => _showFavoritesOnly;
+
+  void toggleShowFavorites() {
+    _showFavoritesOnly = !_showFavoritesOnly;
+    notifyListeners();
+  }
   final List<Album> _albums = [];
   final List<Photo> _trash = [];
   String? _selectedAlbumId;
@@ -23,9 +31,14 @@ class GalleryProvider extends ChangeNotifier {
     );
   }
 
-  List<Photo> get selectedPhotos => selectedAlbum == null
-      ? []
-      : _photosForAlbum(selectedAlbum!.id);
+  List<Photo> get selectedPhotos {
+    if (selectedAlbum == null) return [];
+    var photos = _photosForAlbum(selectedAlbum!.id);
+    if (_showFavoritesOnly) {
+      photos = photos.where((p) => p.isFavorite).toList();
+    }
+    return photos;
+  }
 
   Photo? findPhotoById(String id) {
     final match = _photos.where((photo) => photo.id == id);
@@ -150,6 +163,28 @@ class GalleryProvider extends ChangeNotifier {
     _trash.clear();
     notifyListeners();
   }
+
+  
+  void toggleFavorite(String photoId) {
+    final index = _photos.indexWhere((photo) => photo.id == photoId);
+    if (index >= 0) {
+      _photos[index] = _photos[index].copyWith(isFavorite: !_photos[index].isFavorite);
+      notifyListeners();
+    }
+  }
+
+  List<Photo> get favoritePhotos => _photos.where((photo) => photo.isFavorite).toList();
+
+  List<Photo> searchPhotos(String query) {
+    if (query.isEmpty) return selectedPhotos;
+    final lower = query.toLowerCase();
+    return _photos.where((photo) =>
+      photo.title.toLowerCase().contains(lower)
+    ).toList();
+  }
+
+  int get totalPhotos => _photos.length;
+  int get favoriteCount => _photos.where((p) => p.isFavorite).length;
 
   void addPhoto(String albumId, Photo photo) {
     _photos.add(photo.copyWith(albumId: albumId));

@@ -4,6 +4,7 @@ class Photo {
   final String url;
   final String albumId;
   final bool isSvg;
+  final bool isFavorite;
   final DateTime? deletedAt;
 
   Photo({
@@ -12,6 +13,7 @@ class Photo {
     required this.url,
     required this.albumId,
     this.isSvg = false,
+    this.isFavorite = false,
     this.deletedAt,
   });
 
@@ -21,6 +23,7 @@ class Photo {
     String? url,
     String? albumId,
     bool? isSvg,
+    bool? isFavorite,
     DateTime? deletedAt,
   }) {
     return Photo(

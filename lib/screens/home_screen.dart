@@ -5,6 +5,7 @@ import '../providers/gallery_provider.dart';
 import '../widgets/album_card.dart';
 import '../widgets/photo_grid.dart';
 import 'photo_detail_screen.dart';
+import '../widgets/search_delegate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +21,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _albumController.dispose();
     super.dispose();
+  }
+
+  
+  void _showSearch(BuildContext context) {
+    showSearch(
+      context: context,
+      delegate: PhotoSearchDelegate(),
+    );
   }
 
   void _showCreateAlbumDialog(BuildContext context) {
@@ -70,11 +79,51 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: const Text('Memories!'),
                 actions: [
                   IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () => _showSearch(context),
+                    tooltip: 'Search photos',
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      gallery.showFavoritesOnly
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: gallery.showFavoritesOnly
+                          ? Colors.red
+                          : null,
+                    ),
+                    onPressed: () => gallery.toggleShowFavorites(),
+                    tooltip: 'Favorites',
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.create_new_folder_outlined),
                     onPressed: () => _showCreateAlbumDialog(context),
                     tooltip: 'New album',
                   ),
                 ],
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${gallery.totalPhotos} photos',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                      const Spacer(),
+                      if (gallery.favoriteCount > 0)
+                        Text(
+                          '${gallery.favoriteCount} favorites',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.red.shade300,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -114,6 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 sliver: PhotoGrid(
                   photos: photos,
                   onPhotoTap: (photo) => _openPhotoDetail(context, photo),
+                  onFavoriteTap: (photo) {
+                    Provider.of<GalleryProvider>(context, listen: false).toggleFavorite(photo.id);
+                  },
                 ),
               ),
               const SliverToBoxAdapter(
