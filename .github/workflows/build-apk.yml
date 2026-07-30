@@ -14,8 +14,17 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'
+          flutter-version: '3.44.8'
           channel: 'stable'
+      
+      - name: Downgrade Gradle for compatibility
+        run: |
+          cd android
+          # Use Gradle 8.9 which is compatible with Flutter 3.x
+          sed -i 's|gradle-9.*-all.zip|gradle-8.9-all.zip|g' gradle/wrapper/gradle-wrapper.properties
+          # Update AGP and Kotlin versions in settings.gradle.kts
+          sed -i 's|com.android.application) version "9.*"|com.android.application) version "8.7.3"|' settings.gradle.kts
+          sed -i 's|org.jetbrains.kotlin.android) version "2.*"|org.jetbrains.kotlin.android) version "2.0.21"|' settings.gradle.kts
       
       - name: Install dependencies
         run: flutter pub get
