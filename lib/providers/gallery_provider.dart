@@ -15,9 +15,7 @@ class GalleryProvider extends ChangeNotifier {
   final List<Photo> _trash = [];
   String? _selectedAlbumId;
 
-  GalleryProvider() {
-    _initializeSampleLibrary();
-  }
+  GalleryProvider();
 
   List<Album> get albums => List.unmodifiable(_albums);
   List<Photo> get trash => List.unmodifiable(_trash);

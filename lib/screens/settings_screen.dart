@@ -1,3 +1,5 @@
+import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
@@ -19,8 +21,55 @@ class SettingsScreen extends StatelessWidget {
                 SliverAppBar(
                   pinned: true,
                   floating: true,
-                  backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.92),
-                  title: const Text('Settings'),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  flexibleSpace: TweenAnimationBuilder(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 200),
+                    builder: (context, value, child) {
+                      return ClipRRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: 15 * value,
+                            sigmaY: 15 * value,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.72 * value),
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.06 * value),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  title: Text(
+                    'Settings',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 22,
+                    ),
+                  ),
+                ),
+                // Liquid glass transition spacer
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                          Theme.of(context).colorScheme.surface.withOpacity(0.0),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
@@ -78,11 +127,30 @@ class SettingsScreen extends StatelessWidget {
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               children: [
-                                CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                                  backgroundImage: settings.customIconFile != null ? FileImage(settings.customIconFile!) : null,
-                                  child: settings.customIconFile == null ? const Icon(Icons.photo, size: 28) : null,
+                                Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 28,
+                                      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                                      backgroundImage: settings.customIconFile != null ? FileImage(settings.customIconFile!) : null,
+                                      child: settings.customIconFile == null
+                                        ? const Icon(Icons.photo, size: 28)
+                                        : null,
+                                    ),
+                                    if (settings.customIconFile != null)
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(Icons.check, color: Colors.white, size: 12),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -90,6 +158,7 @@ class SettingsScreen extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const Text('Custom app icon', style: TextStyle(fontWeight: FontWeight.w600)),
+                                        const Text('(Preview only - Android limits custom icons)', style: TextStyle(fontSize: 11, color: Colors.grey)),
                                       const SizedBox(height: 4),
                                       Text(
                                         settings.customIconFile != null ? 'Selected from gallery' : 'Choose an image to personalize',

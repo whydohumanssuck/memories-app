@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
@@ -34,7 +35,19 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
   int _selectedIndex = 0;
+  late final PageController _pageController;
 
   final List<Widget> _screens = const [
     HomeScreen(),
@@ -43,42 +56,76 @@ class _AppShellState extends State<AppShell> {
   ];
 
   void _onNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == _selectedIndex) return;
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOutCubic,
+    );
+    setState(() => _selectedIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: _selectedIndex,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) => setState(() => _selectedIndex = index),
         children: _screens,
       ),
-      bottomNavigationBar: FrostedBar(
-        borderRadius: BorderRadius.circular(32),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        child: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: _onNavTap,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.photo_library_outlined),
-              selectedIcon: Icon(Icons.photo_library),
-              label: 'Gallery',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.delete_outline),
-              selectedIcon: Icon(Icons.delete),
-              label: 'Bin',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(36),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(36),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(36),
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.68),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+              child: NavigationBar(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onNavTap,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.photo_library_outlined),
+                    selectedIcon: Icon(Icons.photo_library),
+                    label: 'Gallery',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.delete_outline),
+                    selectedIcon: Icon(Icons.delete),
+                    label: 'Bin',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.settings_outlined),
+                    selectedIcon: Icon(Icons.settings),
+                    label: 'Settings',
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

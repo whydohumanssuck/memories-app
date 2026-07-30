@@ -22,6 +22,9 @@ class ThemeProvider extends ChangeNotifier {
     AppPalette(name: 'Slate', seedColor: const Color(0xFF607D8B), brightness: Brightness.light),
     AppPalette(name: 'Rose', seedColor: const Color(0xFFEC407A), brightness: Brightness.light),
     AppPalette(name: 'Ocean', seedColor: const Color(0xFF00B8D4), brightness: Brightness.light),
+    // Dark themes
+    AppPalette(name: 'AMOLED Black', seedColor: const Color(0xFF6C5CE7), brightness: Brightness.dark),
+    AppPalette(name: 'Midnight Black', seedColor: const Color(0xFF1A1A2E), brightness: Brightness.dark),
   ];
 
   ThemeData get lightTheme {
@@ -57,12 +60,16 @@ class ThemeProvider extends ChangeNotifier {
 
   ThemeData get darkTheme {
     final darkScheme = ColorScheme.fromSeed(seedColor: currentPalette.seedColor, brightness: Brightness.dark);
+    final isAmoled = currentPalette.name == 'AMOLED Black';
+    final isMidnight = currentPalette.name == 'Midnight Black';
+    final Color bgColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0A0A0F) : darkScheme.background);
     return ThemeData(
       useMaterial3: true,
-      colorScheme: darkScheme,
-      scaffoldBackgroundColor: darkScheme.background,
+      colorScheme: darkScheme.copyWith(background: bgColor, surface: isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0D0D14) : darkScheme.surface)),
+      scaffoldBackgroundColor: bgColor,
       typography: Typography.material2021(platform: TargetPlatform.iOS),
       fontFamily: '.SF UI Text',
+      appBarTheme: AppBarTheme(backgroundColor: bgColor.withOpacity(0.92), elevation: 0, centerTitle: true),
     );
   }
 
