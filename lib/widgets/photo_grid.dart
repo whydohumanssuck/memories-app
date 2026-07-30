@@ -5,8 +5,14 @@ import '../models/photo.dart';
 class PhotoGrid extends StatelessWidget {
   final List<Photo> photos;
   final void Function(Photo) onPhotoTap;
+  final void Function(Photo)? onFavoriteTap;
 
-  const PhotoGrid({super.key, required this.photos, required this.onPhotoTap});
+  const PhotoGrid({
+    super.key,
+    required this.photos,
+    required this.onPhotoTap,
+    this.onFavoriteTap,
+  });
 
   @override
   Widget build(BuildContext context) {
