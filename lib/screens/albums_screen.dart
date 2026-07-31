@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/album.dart';
@@ -73,6 +74,87 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
     if (name != null && name.isNotEmpty) {
       Provider.of<GalleryProvider>(context, listen: false).renameAlbum(album.id, name);
     }
+  }
+
+  Future<void> _openAddPhotoDialog(BuildContext context, Album album) async {
+    final picker = ImagePicker();
+    final List<XFile> picked;
+    try {
+      picked = await picker.pickMultiImage(imageQuality: 90);
+    } catch (_) {
+      picked = <XFile>[];
+    }
+    if (picked.isEmpty) return;
+
+    final gallery = Provider.of<GalleryProvider>(context, listen: false);
+    for (final p in picked) {
+      final file = File(p.path);
+      final isSvg = p.path.toLowerCase().endsWith('.svg');
+      gallery.addPhoto(
+        album.id,
+        Photo(
+          id: 'photo-${DateTime.now().microsecondsSinceEpoch}-${p.path.hashCode}',
+          title: p.path.split('/').last,
+          albumId: album.id,
+          uri: file.path,
+          source: isSvg ? PhotoSource.svg : PhotoSource.local,
+        ),
+      );
+    }
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Added ${picked.length} photo(s) to ${album.title}')),
+      );
+    }
+  }
+
+  Future<void> _openChangeCoverDialog(BuildContext context, Album album) async {
+    final gallery = Provider.of<GalleryProvider>(context, listen: false);
+    final albumPhotos = gallery.photosForAlbum(album.id);
+    if (albumPhotos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No photos in this album yet. Add photos first.')),
+      );
+      return;
+    }
+    final Photo? chosen = await showDialog<Photo>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Choose album cover'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 340,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+              ),
+              itemCount: albumPhotos.length,
+              itemBuilder: (context, index) {
+                final photo = albumPhotos[index];
+                return GestureDetector(
+                  onTap: () => Navigator.pop(context, photo),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _buildImagePreview(photo),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+    if (chosen == null) return;
+    gallery.changeAlbumCover(album.id, chosen.id);
   }
 
   Widget _buildImagePreview(Photo? photo) {
@@ -176,14 +258,25 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
                                 ),
                                 trailing: PopupMenuButton<String>(
                                   itemBuilder: (context) => [
+                                    const PopupMenuItem(value: 'addphoto', child: Text('Add photo')),
+                                    const PopupMenuItem(value: 'cover', child: Text('Change album cover')),
                                     const PopupMenuItem(value: 'rename', child: Text('Rename')),
                                     const PopupMenuItem(value: 'remove', child: Text('Delete')),
                                   ],
                                   onSelected: (value) {
-                                    if (value == 'rename') {
-                                      _openRenameAlbumDialog(context, album);
-                                    } else if (value == 'remove') {
-                                      gallery.removeAlbum(album.id);
+                                    switch (value) {
+                                      case 'addphoto':
+                                        _openAddPhotoDialog(context, album);
+                                        break;
+                                      case 'cover':
+                                        _openChangeCoverDialog(context, album);
+                                        break;
+                                      case 'rename':
+                                        _openRenameAlbumDialog(context, album);
+                                        break;
+                                      case 'remove':
+                                        gallery.removeAlbum(album.id);
+                                        break;
                                     }
                                   },
                                 ),

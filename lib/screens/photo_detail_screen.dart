@@ -19,7 +19,9 @@ class PhotoDetailScreen extends StatelessWidget {
           Center(
             child: Hero(
               tag: photo.id,
-              child: photo.isSvg
+              child: InteractiveViewer(
+                maxScale: 5,
+                child: photo.isSvg
                   ? (photo.isLocal
                       ? SvgPicture.file(File(photo.uri), fit: BoxFit.contain)
                       : SvgPicture.network(photo.uri, fit: BoxFit.contain))
@@ -37,6 +39,7 @@ class PhotoDetailScreen extends StatelessWidget {
                           ),
                           errorWidget: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 64),
                         )),
+              ),
             ),
           ),
           Positioned(

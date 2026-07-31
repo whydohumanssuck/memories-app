@@ -9,12 +9,14 @@ class PhotoGrid extends StatelessWidget {
   final List<Photo> photos;
   final void Function(Photo) onPhotoTap;
   final void Function(Photo)? onPhotoLongPress;
+  final Set<String> selectedIds;
 
   const PhotoGrid({
     super.key,
     required this.photos,
     required this.onPhotoTap,
     this.onPhotoLongPress,
+    this.selectedIds = const {},
   });
 
   @override
@@ -43,6 +45,7 @@ class PhotoGrid extends StatelessWidget {
       delegate: SliverChildBuilderDelegate(
         (context, index) {
           final photo = photos[index];
+          final bool isSelected = selectedIds.contains(photo.id);
           return GestureDetector(
             onTap: () => onPhotoTap(photo),
             onLongPress: onPhotoLongPress == null ? null : () => onPhotoLongPress!(photo),
@@ -55,6 +58,32 @@ class PhotoGrid extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       _buildPhotoPreview(photo),
+                      if (isSelected)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 3,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (isSelected)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.check, color: Colors.white, size: 16),
+                          ),
+                        ),
                       Positioned(
                         left: 0,
                         right: 0,

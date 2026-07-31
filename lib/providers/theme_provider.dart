@@ -24,7 +24,6 @@ class ThemeProvider extends ChangeNotifier {
     AppPalette(name: 'Ocean', seedColor: const Color(0xFF0097A7), brightness: Brightness.light),
     // Dark themes
     AppPalette(name: 'AMOLED Black', seedColor: const Color(0xFF6C5CE7), brightness: Brightness.dark),
-    AppPalette(name: 'Midnight Black', seedColor: const Color(0xFF1A1A2E), brightness: Brightness.dark),
   ];
 
   ThemeData get lightTheme {
@@ -73,14 +72,9 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   ThemeData get darkTheme {
-    final isAmoled = currentPalette.name == 'AMOLED Black';
-    final isMidnight = currentPalette.name == 'Midnight Black';
-    final Color bgColor = isAmoled
-        ? const Color(0xFF000000)
-        : (isMidnight ? const Color(0xFF0A0A0F) : currentPalette.scheme.background);
-    final Color surfaceColor = isAmoled
-        ? const Color(0xFF000000)
-        : (isMidnight ? const Color(0xFF0D0D14) : currentPalette.scheme.surface);
+    final bool isAmoled = currentPalette.name == 'AMOLED Black';
+    final Color bgColor = isAmoled ? const Color(0xFF000000) : currentPalette.scheme.background;
+    final Color surfaceColor = isAmoled ? const Color(0xFF000000) : currentPalette.scheme.surface;
 
     final scheme = ColorScheme.fromSeed(
       seedColor: currentPalette.seedColor,

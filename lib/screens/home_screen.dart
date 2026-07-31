@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../models/album.dart';
 import '../models/photo.dart';
 import '../providers/device_media_provider.dart';
 import '../providers/gallery_provider.dart';
@@ -23,6 +23,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _albumController = TextEditingController();
+  final Set<String> _selectedPhotoIds = {};
+
+  bool get _isSelecting => _selectedPhotoIds.isNotEmpty;
 
   @override
   void initState() {
@@ -124,76 +127,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _showPhotoActions(BuildContext context, Photo photo, GalleryProvider gallery) async {
-    final currentAlbum = gallery.selectedAlbum;
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.88),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08)),
-              ),
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Photo Actions', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 8),
-                  Text(photo.title, style: Theme.of(context).textTheme.bodyLarge),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    leading: const Icon(Icons.fullscreen),
-                    title: const Text('View full screen'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      final motionEnabled = Provider.of<SettingsProvider>(context, listen: false).useSystemMotion;
-                      _openPhotoDetail(context, photo, motionEnabled);
-                    },
-                  ),
-                  if (currentAlbum != null && currentAlbum.id == photo.albumId)
-                    ListTile(
-                      leading: const Icon(Icons.photo_album),
-                      title: const Text('Set as album cover'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        gallery.changeAlbumCover(photo.albumId, photo.id);
-                      },
-                    ),
-                  ListTile(
-                    leading: const Icon(Icons.delete_outline),
-                    title: const Text('Delete photo'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      gallery.deletePhoto(photo);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Consumer3<GalleryProvider, SettingsProvider, DeviceMediaProvider>(
-      builder: (context, gallery, settings, deviceMedia, child) {
+    return Consumer2<GalleryProvider, DeviceMediaProvider>(
+      builder: (context, gallery, deviceMedia, child) {
         final currentAlbum = gallery.selectedAlbum;
         final photos = gallery.selectedPhotos;
 
         return SafeArea(
-          child: CustomScrollView(
+          child: Stack(
+            children: [
+              CustomScrollView(
             slivers: [
               SliverAppBar(
                 pinned: true,
@@ -369,11 +314,66 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: PhotoGrid(
                     photos: photos,
-                    onPhotoTap: (photo) => _openPhotoDetail(context, photo, settings.useSystemMotion),
-                    onPhotoLongPress: (photo) => _showPhotoActions(context, photo, gallery),
+                    onPhotoTap: _onPhotoTap,
+                    onPhotoLongPress: _onPhotoLongPress,
+                    selectedIds: _selectedPhotoIds,
                   ),
                 ),
               const SliverToBoxAdapter(child: SizedBox(height: 120)),
+            ],
+          ),
+              if (_isSelecting)
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF1E1E24).withOpacity(0.95)
+                          : Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            '${_selectedPhotoIds.length} selected',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : null,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.photo_library_outlined),
+                          tooltip: 'Add to album',
+                          onPressed: _showAddToAlbumDialog,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          tooltip: 'Delete',
+                          onPressed: _confirmDeleteSelected,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          tooltip: 'Clear selection',
+                          onPressed: _clearSelection,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         );

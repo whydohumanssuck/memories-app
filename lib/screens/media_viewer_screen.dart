@@ -65,13 +65,16 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
                         ),
                       )
                     : const CircularProgressIndicator(color: Colors.white70))
-                : Image(
-                    image: AssetEntityImageProvider(widget.asset, isOriginal: true),
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.broken_image,
-                      color: Colors.white54,
-                      size: 64,
+                : InteractiveViewer(
+                    maxScale: 5,
+                    child: Image(
+                      image: AssetEntityImageProvider(widget.asset, isOriginal: true),
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.broken_image,
+                        color: Colors.white54,
+                        size: 64,
+                      ),
                     ),
                   ),
           ),

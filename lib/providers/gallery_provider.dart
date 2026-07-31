@@ -138,6 +138,38 @@ class GalleryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Copies the given photos into another album (adds entries without removing
+  /// them from their current album).
+  void addPhotosToAlbum(List<Photo> photos, String albumId) {
+    for (final photo in photos) {
+      _photos.add(Photo(
+        id: 'photo-${DateTime.now().microsecondsSinceEpoch}-${photo.id}',
+        title: photo.title,
+        albumId: albumId,
+        uri: photo.uri,
+        source: photo.source,
+      ));
+    }
+    notifyListeners();
+  }
+
+  /// Moves the given photos to the trash in one batch.
+  void deletePhotos(List<Photo> photos) {
+    for (final photo in photos) {
+      _photos.removeWhere((item) => item.id == photo.id);
+      _trash.add(photo.copyWith(deletedAt: DateTime.now()));
+      for (var index = 0; index < _albums.length; index++) {
+        if (_albums[index].coverPhotoId == photo.id) {
+          final fallbackPhotos = photosForAlbum(_albums[index].id);
+          _albums[index] = _albums[index].copyWith(
+            coverPhotoId: fallbackPhotos.isNotEmpty ? fallbackPhotos.first.id : '',
+          );
+        }
+      }
+    }
+    notifyListeners();
+  }
+
   void deletePhoto(Photo photo) {
     _photos.removeWhere((item) => item.id == photo.id);
     _trash.add(photo.copyWith(deletedAt: DateTime.now()));
