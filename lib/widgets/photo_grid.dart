@@ -1,18 +1,20 @@
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/photo.dart';
 
 class PhotoGrid extends StatelessWidget {
   final List<Photo> photos;
   final void Function(Photo) onPhotoTap;
-  final void Function(Photo)? onFavoriteTap;
+  final void Function(Photo)? onPhotoLongPress;
 
   const PhotoGrid({
     super.key,
     required this.photos,
     required this.onPhotoTap,
-    this.onFavoriteTap,
+    this.onPhotoLongPress,
   });
 
   @override
@@ -43,6 +45,7 @@ class PhotoGrid extends StatelessWidget {
           final photo = photos[index];
           return GestureDetector(
             onTap: () => onPhotoTap(photo),
+            onLongPress: onPhotoLongPress == null ? null : () => onPhotoLongPress!(photo),
             child: Hero(
               tag: photo.id,
               child: ClipRRect(
@@ -51,34 +54,7 @@ class PhotoGrid extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      photo.url.startsWith('http')
-                          ? CachedNetworkImage(
-                              imageUrl: photo.url,
-                              fit: BoxFit.cover,
-                              memCacheWidth: 400,
-                              placeholder: (_, __) => Container(
-                                color: Colors.grey.shade900,
-                                child: const Center(
-                                  child: SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  ),
-                                ),
-                              ),
-                              errorWidget: (_, __, ___) => Container(
-                                color: Colors.grey.shade900,
-                                child: const Icon(Icons.broken_image, color: Colors.white54),
-                              ),
-                            )
-                          : Image(
-                              image: FileImage(File(photo.url)),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: Colors.grey.shade900,
-                                child: const Icon(Icons.broken_image, color: Colors.white54),
-                              ),
-                            ),
+                      _buildPhotoPreview(photo),
                       Positioned(
                         left: 0,
                         right: 0,
@@ -108,6 +84,45 @@ class PhotoGrid extends StatelessWidget {
           );
         },
         childCount: photos.length,
+      ),
+    );
+  }
+
+  Widget _buildPhotoPreview(Photo photo) {
+    if (photo.isSvg) {
+      return photo.isLocal
+          ? SvgPicture.file(File(photo.uri), fit: BoxFit.cover)
+          : SvgPicture.network(photo.uri, fit: BoxFit.cover);
+    }
+
+    if (photo.isLocal) {
+      return Image.file(
+        File(photo.uri),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey.shade900,
+          child: const Icon(Icons.broken_image, color: Colors.white54),
+        ),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: photo.uri,
+      fit: BoxFit.cover,
+      memCacheWidth: 400,
+      placeholder: (_, __) => Container(
+        color: Colors.grey.shade900,
+        child: const Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      errorWidget: (_, __, ___) => Container(
+        color: Colors.grey.shade900,
+        child: const Icon(Icons.broken_image, color: Colors.white54),
       ),
     );
   }

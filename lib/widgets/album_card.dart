@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../models/album.dart';
+import '../models/photo.dart';
 import '../providers/gallery_provider.dart';
 
 class AlbumCard extends StatelessWidget {
@@ -50,17 +53,7 @@ class AlbumCard extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                       child: hasCover
-                          ? Image(
-                                image: coverPhoto!.url.startsWith('http')
-                                    ? NetworkImage(coverPhoto.url) as ImageProvider
-                                    : FileImage(File(coverPhoto.url)) as ImageProvider,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: Colors.grey.shade800,
-                                  child: const Icon(Icons.broken_image, color: Colors.white54),
-                                ),
-                              )
+                          ? _buildCover(coverPhoto!)
                           : Container(
                               alignment: Alignment.center,
                               color: isDark ? const Color(0xFF2A2A35) : Theme.of(context).colorScheme.primaryContainer,
@@ -111,6 +104,35 @@ class AlbumCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCover(Photo photo) {
+    if (photo.isSvg) {
+      return photo.isLocal
+          ? SvgPicture.file(File(photo.uri), width: double.infinity, fit: BoxFit.cover)
+          : SvgPicture.network(photo.uri, width: double.infinity, fit: BoxFit.cover);
+    }
+    if (photo.isLocal) {
+      return Image.file(
+        File(photo.uri),
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey.shade800,
+          child: const Icon(Icons.broken_image, color: Colors.white54),
+        ),
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: photo.uri,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      memCacheWidth: 320,
+      errorWidget: (_, __, ___) => Container(
+        color: Colors.grey.shade800,
+        child: const Icon(Icons.broken_image, color: Colors.white54),
       ),
     );
   }

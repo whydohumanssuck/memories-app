@@ -1,5 +1,5 @@
-import 'dart:ui';
 import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,7 +12,6 @@ class PhotoDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isLocal = !photo.url.startsWith('http');
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -21,21 +20,23 @@ class PhotoDetailScreen extends StatelessWidget {
             child: Hero(
               tag: photo.id,
               child: photo.isSvg
-                  ? SvgPicture.network(photo.url, fit: BoxFit.contain)
-                  : isLocal
-                      ? Image(
-                          image: FileImage(File(photo.url)),
+                  ? (photo.isLocal
+                      ? SvgPicture.file(File(photo.uri), fit: BoxFit.contain)
+                      : SvgPicture.network(photo.uri, fit: BoxFit.contain))
+                  : (photo.isLocal
+                      ? Image.file(
+                          File(photo.uri),
                           fit: BoxFit.contain,
                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 64),
                         )
                       : CachedNetworkImage(
-                          imageUrl: photo.url,
+                          imageUrl: photo.uri,
                           fit: BoxFit.contain,
                           placeholder: (_, __) => const Center(
                             child: CircularProgressIndicator(color: Colors.white54),
                           ),
                           errorWidget: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 64),
-                        ),
+                        )),
             ),
           ),
           Positioned(

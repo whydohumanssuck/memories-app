@@ -16,42 +16,56 @@ class ThemeProvider extends ChangeNotifier {
   int _activeIndex = 0;
 
   final List<AppPalette> palettes = [
-    AppPalette(name: 'Aurora', seedColor: const Color(0xFF5764FF), brightness: Brightness.light),
-    AppPalette(name: 'Citrus', seedColor: const Color(0xFFFFB74D), brightness: Brightness.light),
-    AppPalette(name: 'Emerald', seedColor: const Color(0xFF4CAF50), brightness: Brightness.light),
+    AppPalette(name: 'Aurora', seedColor: const Color(0xFF5A5AFF), brightness: Brightness.light),
+    AppPalette(name: 'Citrus', seedColor: const Color(0xFFFFB746), brightness: Brightness.light),
+    AppPalette(name: 'Emerald', seedColor: const Color(0xFF3EA55D), brightness: Brightness.light),
     AppPalette(name: 'Slate', seedColor: const Color(0xFF607D8B), brightness: Brightness.light),
     AppPalette(name: 'Rose', seedColor: const Color(0xFFEC407A), brightness: Brightness.light),
-    AppPalette(name: 'Ocean', seedColor: const Color(0xFF00B8D4), brightness: Brightness.light),
+    AppPalette(name: 'Ocean', seedColor: const Color(0xFF0097A7), brightness: Brightness.light),
     // Dark themes
     AppPalette(name: 'AMOLED Black', seedColor: const Color(0xFF6C5CE7), brightness: Brightness.dark),
     AppPalette(name: 'Midnight Black', seedColor: const Color(0xFF1A1A2E), brightness: Brightness.dark),
   ];
 
   ThemeData get lightTheme {
+    final scheme = currentPalette.scheme;
+    final typography = Typography.material2021(platform: TargetPlatform.iOS);
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: currentPalette.scheme,
-      scaffoldBackgroundColor: currentPalette.scheme.background,
+      colorScheme: scheme,
+      typography: typography,
       fontFamily: '.SF UI Text',
+      scaffoldBackgroundColor: scheme.background,
       appBarTheme: AppBarTheme(
-        backgroundColor: currentPalette.scheme.surface.withOpacity(0.92),
+        backgroundColor: scheme.surface.withOpacity(0.94),
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: currentPalette.scheme.onSurface),
+        iconTheme: IconThemeData(color: scheme.onSurface),
+        titleTextStyle: typography.titleLarge?.copyWith(color: scheme.onSurface, fontWeight: FontWeight.w700),
       ),
-      cardTheme: CardThemeData(
-        color: currentPalette.scheme.surfaceVariant,
-        elevation: 2,
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: scheme.surface.withOpacity(0.92),
+        indicatorColor: scheme.primaryContainer,
+        labelTextStyle: MaterialStateProperty.all(typography.labelLarge?.copyWith(fontWeight: FontWeight.w600)),
+        iconTheme: MaterialStateProperty.all(IconThemeData(color: scheme.onSurfaceVariant)),
+      ),
+      cardTheme: CardTheme(
+        color: scheme.surfaceVariant,
+        elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
-      bottomAppBarTheme: BottomAppBarThemeData(color: currentPalette.scheme.surface.withOpacity(0.92)),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: currentPalette.scheme.primary,
-        foregroundColor: currentPalette.scheme.onPrimary,
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: currentPalette.scheme.surface.withOpacity(0.96),
+      dialogTheme: DialogTheme(
+        backgroundColor: scheme.surface.withOpacity(0.96),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surface.withOpacity(0.90),
+        modalBackgroundColor: scheme.surface.withOpacity(0.90),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
       ),
     );
   }
@@ -59,10 +73,14 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData get darkTheme {
     final isAmoled = currentPalette.name == 'AMOLED Black';
     final isMidnight = currentPalette.name == 'Midnight Black';
-    final Color bgColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0A0A0F) : currentPalette.scheme.background);
-    final Color surfaceColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0D0D14) : currentPalette.scheme.surface);
+    final Color bgColor = isAmoled
+        ? const Color(0xFF000000)
+        : (isMidnight ? const Color(0xFF0A0A0F) : currentPalette.scheme.background);
+    final Color surfaceColor = isAmoled
+        ? const Color(0xFF000000)
+        : (isMidnight ? const Color(0xFF0D0D14) : currentPalette.scheme.surface);
 
-    final darkScheme = ColorScheme.fromSeed(
+    final scheme = ColorScheme.fromSeed(
       seedColor: currentPalette.seedColor,
       brightness: Brightness.dark,
     ).copyWith(
@@ -71,41 +89,50 @@ class ThemeProvider extends ChangeNotifier {
       onBackground: Colors.white,
       onSurface: Colors.white,
     );
+    final typography = Typography.material2021(platform: TargetPlatform.iOS);
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: darkScheme,
-      scaffoldBackgroundColor: bgColor,
+      colorScheme: scheme,
+      typography: typography,
       fontFamily: '.SF UI Text',
-      appBarTheme: const AppBarTheme(
+      scaffoldBackgroundColor: bgColor,
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
-      ),
-      cardTheme: CardThemeData(
-        color: surfaceColor.withOpacity(0.85),
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.transparent,
-        indicatorColor: darkScheme.primary,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return const TextStyle(color: Colors.white, fontSize: 12);
-          return const TextStyle(color: Colors.white60, fontSize: 12);
-        }),
+        indicatorColor: scheme.primary,
+        labelTextStyle: MaterialStateProperty.all(
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        iconTheme: MaterialStateProperty.all(const IconThemeData(color: Colors.white70)),
+      ),
+      cardTheme: CardTheme(
+        color: surfaceColor.withOpacity(0.85),
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: const Color(0xFF1E1E24).withOpacity(0.92),
+        modalBackgroundColor: const Color(0xFF1E1E24).withOpacity(0.92),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: scheme.primary,
+        foregroundColor: Colors.white,
       ),
     );
   }
 
   AppPalette get currentPalette => palettes[_activeIndex];
-
   int get activeIndex => _activeIndex;
 
   void updateTheme(int index) {

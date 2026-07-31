@@ -1,6 +1,11 @@
 import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+
+import '../models/photo.dart';
 import '../providers/gallery_provider.dart';
 
 class BinScreen extends StatelessWidget {
@@ -17,7 +22,6 @@ class BinScreen extends StatelessWidget {
             backgroundColor: Colors.transparent,
             appBar: AppBar(
               title: Text('Bin', style: TextStyle(color: isDark ? Colors.white : null)),
-              iconTheme: IconThemeData(color: isDark ? Colors.white : null),
               backgroundColor: Colors.transparent,
               elevation: 0,
               actions: [
@@ -70,30 +74,15 @@ class BinScreen extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           color: isDark ? const Color(0xFF1E1E24).withOpacity(0.8) : null,
                           child: ListTile(
-                            leading: Hero(
-                              tag: item.id,
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
                               child: SizedBox(
                                 width: 60,
                                 height: 60,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image(
-                                    image: item.url.startsWith('http')
-                                        ? NetworkImage(item.url) as ImageProvider
-                                        : FileImage(File(item.url)) as ImageProvider,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: Colors.grey.shade800,
-                                      child: const Icon(Icons.broken_image, color: Colors.white54),
-                                    ),
-                                  ),
-                                ),
+                                child: _buildPreview(item),
                               ),
                             ),
-                            title: Text(
-                              item.title,
-                              style: TextStyle(color: isDark ? Colors.white : null),
-                            ),
+                            title: Text(item.title, style: TextStyle(color: isDark ? Colors.white : null)),
                             subtitle: Text(
                               'Deleted ${item.deletedAt != null ? item.deletedAt!.toLocal().toString().split(' ').first : 'recently'}',
                               style: TextStyle(color: isDark ? Colors.white60 : null),
@@ -114,6 +103,35 @@ class BinScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildPreview(Photo photo) {
+    if (photo.isSvg) {
+      return photo.isLocal
+          ? SvgPicture.file(File(photo.uri), fit: BoxFit.cover)
+          : SvgPicture.network(photo.uri, fit: BoxFit.cover);
+    }
+
+    if (photo.isLocal) {
+      return Image.file(
+        File(photo.uri),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey.shade800,
+          child: const Icon(Icons.broken_image, color: Colors.white54),
+        ),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: photo.uri,
+      fit: BoxFit.cover,
+      memCacheWidth: 200,
+      errorWidget: (_, __, ___) => Container(
+        color: Colors.grey.shade800,
+        child: const Icon(Icons.broken_image, color: Colors.white54),
+      ),
+    );
+  }
+
   Future<void> _confirmEmptyBin(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -126,18 +144,13 @@ class BinScreen extends StatelessWidget {
             style: TextStyle(color: isDark ? Colors.white70 : null),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white70 : null)),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Empty'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Empty')),
           ],
         );
       },
     );
+
     if (confirmed == true) {
       Provider.of<GalleryProvider>(context, listen: false).emptyBin();
     }
@@ -155,14 +168,8 @@ class BinScreen extends StatelessWidget {
             style: TextStyle(color: isDark ? Colors.white70 : null),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white70 : null)),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
           ],
         );
       },

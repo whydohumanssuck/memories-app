@@ -46,7 +46,6 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Content area with iOS rounded corners
                 SliverToBoxAdapter(
                   child: Container(
                     decoration: BoxDecoration(
@@ -64,11 +63,10 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(18.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Theme section
                           Text('Theme',
                             style: TextStyle(
                               fontSize: 20,
@@ -132,8 +130,6 @@ class SettingsScreen extends StatelessWidget {
                             }).toList(),
                           ),
                           const SizedBox(height: 26),
-
-                          // Motion Effects section
                           Text('Motion Effects',
                             style: TextStyle(
                               fontSize: 20,

@@ -1,14 +1,18 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+
 import '../models/photo.dart';
 import '../providers/device_media_provider.dart';
 import '../providers/gallery_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/album_card.dart';
 import '../widgets/device_media_grid.dart';
 import '../widgets/photo_grid.dart';
 import 'photo_detail_screen.dart';
-import '../widgets/search_delegate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,77 +40,145 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _showSearch(BuildContext context) {
-    showSearch(
-      context: context,
-      delegate: PhotoSearchDelegate(),
-    );
-  }
-
-  void _showAddPhoto(BuildContext context) async {
-    final picker = Provider.of<GalleryProvider>(context, listen: false);
-    final ImagePicker imagePicker = ImagePicker();
-
-    final source = await showDialog<ImageSource>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Photo'),
-        content: const Text('Choose a source'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, ImageSource.camera),
-            child: const Text('Camera'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, ImageSource.gallery),
-            child: const Text('Gallery'),
-          ),
-        ],
-      ),
-    );
-
-    if (source == null) return;
-
-    final XFile? pickedFile = await imagePicker.pickImage(
-      source: source,
-      imageQuality: 85,
-    );
-
-    if (pickedFile != null && context.mounted) {
-      final album = picker.selectedAlbum;
-      if (album != null) {
-        picker.addPhotoFromFile(album.id, pickedFile);
-      }
-    }
-  }
-
-  void _showCreateAlbumDialog(BuildContext context) {
+  Future<void> _createAlbum(BuildContext context) async {
     _albumController.clear();
-    showDialog(
+    final result = await showDialog<String?>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('New Album'),
+          title: const Text('Create New Album'),
           content: TextField(
             controller: _albumController,
+            autofocus: true,
             decoration: const InputDecoration(hintText: 'Album name'),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final title = _albumController.text.trim();
-                if (title.isNotEmpty) {
-                  Provider.of<GalleryProvider>(context, listen: false).createAlbum(title);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Create'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(context, _albumController.text.trim()), child: const Text('Create')),
           ],
+        );
+      },
+    );
+
+    if (result != null && result.isNotEmpty) {
+      Provider.of<GalleryProvider>(context, listen: false).createAlbum(result);
+    }
+  }
+
+  Future<void> _renameAlbum(BuildContext context, String albumId, String currentTitle) async {
+    _albumController.text = currentTitle;
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Rename Album'),
+          content: TextField(
+            controller: _albumController,
+            autofocus: true,
+            decoration: const InputDecoration(hintText: 'Album name'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(context, _albumController.text.trim()), child: const Text('Save')),
+          ],
+        );
+      },
+    );
+
+    if (result != null && result.isNotEmpty) {
+      Provider.of<GalleryProvider>(context, listen: false).renameAlbum(albumId, result);
+    }
+  }
+
+  Future<void> _pickImage(BuildContext context, String albumId) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
+    if (picked == null) return;
+    final file = File(picked.path);
+    final title = picked.path.split('/').last;
+    final isSvg = picked.path.toLowerCase().endsWith('.svg');
+    final photo = Photo(
+      id: 'photo-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      albumId: albumId,
+      uri: file.path,
+      source: isSvg ? PhotoSource.svg : PhotoSource.local,
+    );
+    Provider.of<GalleryProvider>(context, listen: false).addPhoto(albumId, photo);
+  }
+
+  void _openPhotoDetail(BuildContext context, Photo photo, bool motionEnabled) {
+    final page = PhotoDetailScreen(photo: photo);
+    if (motionEnabled) {
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 450),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return FadeTransition(opacity: animation, child: page);
+          },
+        ),
+      );
+    } else {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    }
+  }
+
+  Future<void> _showPhotoActions(BuildContext context, Photo photo, GalleryProvider gallery) async {
+    final currentAlbum = gallery.selectedAlbum;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.88),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08)),
+              ),
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Photo Actions', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 8),
+                  Text(photo.title, style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    leading: const Icon(Icons.fullscreen),
+                    title: const Text('View full screen'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      final motionEnabled = Provider.of<SettingsProvider>(context, listen: false).useSystemMotion;
+                      _openPhotoDetail(context, photo, motionEnabled);
+                    },
+                  ),
+                  if (currentAlbum != null && currentAlbum.id == photo.albumId)
+                    ListTile(
+                      leading: const Icon(Icons.photo_album),
+                      title: const Text('Set as album cover'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        gallery.changeAlbumCover(photo.albumId, photo.id);
+                      },
+                    ),
+                  ListTile(
+                    leading: const Icon(Icons.delete_outline),
+                    title: const Text('Delete photo'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      gallery.deletePhoto(photo);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
@@ -115,74 +187,42 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Consumer2<GalleryProvider, DeviceMediaProvider>(
-      builder: (context, gallery, deviceMedia, child) {
+    return Consumer3<GalleryProvider, SettingsProvider, DeviceMediaProvider>(
+      builder: (context, gallery, settings, deviceMedia, child) {
         final currentAlbum = gallery.selectedAlbum;
         final photos = gallery.selectedPhotos;
+
         return SafeArea(
           child: CustomScrollView(
             slivers: [
               SliverAppBar(
                 pinned: true,
                 floating: true,
-                backgroundColor: isDark ? Colors.transparent : Theme.of(context).colorScheme.surface.withOpacity(0.86),
-                title: Text(
-                  'Memories!',
-                  style: TextStyle(color: isDark ? Colors.white : null),
+                expandedHeight: 120,
+                backgroundColor: isDark
+                    ? Colors.transparent
+                    : Theme.of(context).colorScheme.surface.withOpacity(0.92),
+                flexibleSpace: FlexibleSpaceBar(
+                  titlePadding: const EdgeInsets.only(left: 16, bottom: 14),
+                  title: Text(
+                    'Memories!',
+                    style: TextStyle(color: isDark ? Colors.white : null),
+                  ),
                 ),
-                iconTheme: IconThemeData(color: isDark ? Colors.white : null),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.add_photo_alternate_outlined),
-                    onPressed: () => _showAddPhoto(context),
+                    icon: const Icon(Icons.photo_library_outlined),
                     tooltip: 'Add photo',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () => _showSearch(context),
-                    tooltip: 'Search photos',
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      gallery.showFavoritesOnly
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: gallery.showFavoritesOnly
-                          ? Colors.red
-                          : (isDark ? Colors.white : null),
-                    ),
-                    onPressed: () => gallery.toggleShowFavorites(),
-                    tooltip: 'Favorites',
+                    onPressed: currentAlbum == null
+                        ? null
+                        : () => _pickImage(context, currentAlbum.id),
                   ),
                   IconButton(
                     icon: const Icon(Icons.create_new_folder_outlined),
-                    onPressed: () => _showCreateAlbumDialog(context),
-                    tooltip: 'New album',
+                    tooltip: 'Create album',
+                    onPressed: () => _createAlbum(context),
                   ),
                 ],
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${gallery.totalPhotos} curated photos',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark ? Colors.white60 : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                      const Spacer(),
-                      if (gallery.favoriteCount > 0)
-                        Text(
-                          '${gallery.favoriteCount} favorites',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.red.shade300,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
               ),
               // === DEVICE MEDIA SECTION ===
               SliverToBoxAdapter(
@@ -228,7 +268,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E24).withOpacity(0.6) : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.6),
+                        color: isDark
+                            ? const Color(0xFF1E1E24).withOpacity(0.6)
+                            : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -287,8 +329,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SizedBox(
-                    height: 140,
+                    height: 160,
                     child: ListView.builder(
+                      padding: EdgeInsets.zero,
                       scrollDirection: Axis.horizontal,
                       itemCount: gallery.albums.length,
                       itemBuilder: (context, index) {
@@ -297,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           album: album,
                           isSelected: currentAlbum?.id == album.id,
                           onTap: () => gallery.selectAlbum(album.id),
-                          onRename: () => _showRenameAlbumDialog(context, album.id, album.title),
+                          onRename: () => _renameAlbum(context, album.id, album.title),
                           onRemove: () => gallery.removeAlbum(album.id),
                         );
                       },
@@ -306,67 +349,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: PhotoGrid(
-                  photos: photos,
-                  onPhotoTap: (photo) => _openPhotoDetail(context, photo),
-                  onFavoriteTap: (photo) {
-                    Provider.of<GalleryProvider>(context, listen: false).toggleFavorite(photo.id);
-                  },
+              if (photos.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 80),
+                    child: Center(
+                      child: Text(
+                        currentAlbum == null
+                            ? 'Create an album first, then tap the photo icon to add memories.'
+                            : 'This album is empty. Add a photo to begin capturing memories.',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: PhotoGrid(
+                    photos: photos,
+                    onPhotoTap: (photo) => _openPhotoDetail(context, photo, settings.useSystemMotion),
+                    onPhotoLongPress: (photo) => _showPhotoActions(context, photo, gallery),
+                  ),
                 ),
-              ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  void _openPhotoDetail(BuildContext context, Photo photo) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 300),
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return FadeTransition(
-            opacity: animation,
-            child: PhotoDetailScreen(photo: photo),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showRenameAlbumDialog(BuildContext context, String albumId, String currentTitle) {
-    _albumController.text = currentTitle;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Rename Album'),
-          content: TextField(
-            controller: _albumController,
-            decoration: const InputDecoration(hintText: 'Album name'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final title = _albumController.text.trim();
-                if (title.isNotEmpty) {
-                  Provider.of<GalleryProvider>(context, listen: false).renameAlbum(albumId, title);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
         );
       },
     );

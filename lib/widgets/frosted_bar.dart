@@ -16,6 +16,7 @@ class FrostedBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: ClipRRect(
@@ -25,7 +26,9 @@ class FrostedBar extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.78),
+              color: isDark
+                  ? const Color(0xFF0D0D14).withOpacity(0.9)
+                  : Theme.of(context).colorScheme.surface.withOpacity(0.82),
               borderRadius: borderRadius,
               border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08)),
             ),
