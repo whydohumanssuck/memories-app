@@ -30,11 +30,13 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData get lightTheme {
     final scheme = currentPalette.scheme;
     final typography = Typography.material2021(platform: TargetPlatform.iOS);
+    final textTheme = typography.black;
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       typography: typography,
+      textTheme: textTheme,
       fontFamily: '.SF UI Text',
       scaffoldBackgroundColor: scheme.background,
       appBarTheme: AppBarTheme(
@@ -42,20 +44,20 @@ class ThemeProvider extends ChangeNotifier {
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: scheme.onSurface),
-        titleTextStyle: typography.titleLarge?.copyWith(color: scheme.onSurface, fontWeight: FontWeight.w700),
+        titleTextStyle: textTheme.titleLarge?.copyWith(color: scheme.onSurface, fontWeight: FontWeight.w700),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface.withOpacity(0.92),
         indicatorColor: scheme.primaryContainer,
-        labelTextStyle: MaterialStateProperty.all(typography.labelLarge?.copyWith(fontWeight: FontWeight.w600)),
+        labelTextStyle: MaterialStateProperty.all(textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600)),
         iconTheme: MaterialStateProperty.all(IconThemeData(color: scheme.onSurfaceVariant)),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: scheme.surfaceVariant,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: scheme.surface.withOpacity(0.96),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       ),
@@ -112,12 +114,12 @@ class ThemeProvider extends ChangeNotifier {
         ),
         iconTheme: MaterialStateProperty.all(const IconThemeData(color: Colors.white70)),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surfaceColor.withOpacity(0.85),
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: const Color(0xFF1E1E1E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       ),
