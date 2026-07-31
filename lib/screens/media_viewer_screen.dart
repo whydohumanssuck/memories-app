@@ -64,9 +64,8 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
                         ),
                       )
                     : const CircularProgressIndicator(color: Colors.white70))
-                : AssetEntityImage(
-                    widget.asset,
-                    isOriginal: true,
+                : Image(
+                    image: AssetEntityImageProvider(widget.asset, isOriginal: true),
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
                       Icons.broken_image,
@@ -89,7 +88,7 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          widget.asset.title,
+                          widget.asset.title ?? 'Untitled',
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
@@ -122,17 +121,15 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
           vc.value.isPlaying ? vc.pause() : vc.play();
         });
       },
-      child: _videoController!.value.isPlaying
-          ? Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-              child: const Icon(Icons.pause, color: Colors.white, size: 40),
-            )
-          : Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-              child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
-            ),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+        child: Icon(
+          _videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+          color: Colors.white,
+          size: 40,
+        ),
+      ),
     );
   }
 }

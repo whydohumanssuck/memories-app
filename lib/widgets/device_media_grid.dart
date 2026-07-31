@@ -45,9 +45,8 @@ class DeviceMediaGrid extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  AssetEntityImage(
-                    asset,
-                    isOriginal: false,
+                  Image(
+                    image: AssetEntityImageProvider(asset, isOriginal: false),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: Colors.grey.shade900,
@@ -62,7 +61,7 @@ class DeviceMediaGrid extends StatelessWidget {
                         child: const Icon(Icons.play_arrow, color: Colors.white, size: 22),
                       ),
                     ),
-                  if (isVideo && asset.duration.inSeconds > 0)
+                  if (isVideo && asset.duration > 0)
                     Positioned(
                       right: 3,
                       bottom: 3,
@@ -88,7 +87,8 @@ class DeviceMediaGrid extends StatelessWidget {
     );
   }
 
-  String _formatDuration(Duration d) {
+  String _formatDuration(int totalSeconds) {
+    final Duration d = Duration(seconds: totalSeconds);
     final minutes = d.inMinutes.toString().padLeft(2, '0');
     final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
     if (d.inHours > 0) {
