@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
@@ -47,7 +46,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Content area with iOS rounded corners (no expensive blur)
+                // Content area with iOS rounded corners
                 SliverToBoxAdapter(
                   child: Container(
                     decoration: BoxDecoration(
@@ -131,99 +130,6 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                               );
                             }).toList(),
-                          ),
-                          const SizedBox(height: 26),
-
-                          // App Icon Picker section
-                          Text('App Icon Picker',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : null,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E1E24).withOpacity(0.6)
-                                  : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.06),
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Stack(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 28,
-                                      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                                      backgroundImage: settings.customIconFile != null ? FileImage(settings.customIconFile!) : null,
-                                      child: settings.customIconFile == null
-                                        ? const Icon(Icons.photo, size: 28)
-                                        : null,
-                                    ),
-                                    if (settings.customIconFile != null)
-                                      Positioned(
-                                        right: 0,
-                                        bottom: 0,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(3),
-                                          decoration: BoxDecoration(
-                                            color: Colors.green,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(Icons.check, color: Colors.white, size: 12),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Custom app icon',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: isDark ? Colors.white : null,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Android does not support changing app icons at runtime',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: isDark ? Colors.white60 : Colors.grey,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Use a custom launcher like Nova to change icons',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: isDark ? Colors.white38 : Colors.grey.shade500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        settings.customIconFile != null ? 'Selected from gallery' : 'Choose an image to personalize',
-                                        style: TextStyle(
-                                          color: isDark ? Colors.white70 : null,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: settings.pickCustomIcon,
-                                  child: const Text('Pick'),
-                                ),
-                              ],
-                            ),
                           ),
                           const SizedBox(height: 26),
 
