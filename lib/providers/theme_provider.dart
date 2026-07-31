@@ -32,7 +32,6 @@ class ThemeProvider extends ChangeNotifier {
       useMaterial3: true,
       colorScheme: currentPalette.scheme,
       scaffoldBackgroundColor: currentPalette.scheme.background,
-      typography: Typography.material2021(platform: TargetPlatform.iOS),
       fontFamily: '.SF UI Text',
       appBarTheme: AppBarTheme(
         backgroundColor: currentPalette.scheme.surface.withOpacity(0.92),
@@ -45,7 +44,6 @@ class ThemeProvider extends ChangeNotifier {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
-      textTheme: Typography.material2021(platform: TargetPlatform.iOS).black,
       bottomAppBarTheme: BottomAppBarThemeData(color: currentPalette.scheme.surface.withOpacity(0.92)),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: currentPalette.scheme.primary,
@@ -63,7 +61,6 @@ class ThemeProvider extends ChangeNotifier {
     final isMidnight = currentPalette.name == 'Midnight Black';
     final Color bgColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0A0A0F) : currentPalette.scheme.background);
     final Color surfaceColor = isAmoled ? const Color(0xFF000000) : (isMidnight ? const Color(0xFF0D0D14) : currentPalette.scheme.surface);
-    final Color onBgColor = Colors.white;
 
     final darkScheme = ColorScheme.fromSeed(
       seedColor: currentPalette.seedColor,
@@ -71,7 +68,7 @@ class ThemeProvider extends ChangeNotifier {
     ).copyWith(
       background: bgColor,
       surface: surfaceColor,
-      onBackground: onBgColor,
+      onBackground: Colors.white,
       onSurface: Colors.white,
     );
 
@@ -79,17 +76,14 @@ class ThemeProvider extends ChangeNotifier {
       useMaterial3: true,
       colorScheme: darkScheme,
       scaffoldBackgroundColor: bgColor,
-      typography: Typography.material2021(platform: TargetPlatform.iOS),
       fontFamily: '.SF UI Text',
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
       ),
-      textTheme: Typography.material2021(platform: TargetPlatform.iOS).white,
-      primaryTextTheme: Typography.material2021(platform: TargetPlatform.iOS).white,
       cardTheme: CardThemeData(
         color: surfaceColor.withOpacity(0.85),
         elevation: 2,
@@ -102,10 +96,6 @@ class ThemeProvider extends ChangeNotifier {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.transparent,
         indicatorColor: darkScheme.primary,
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return Colors.white;
-          return Colors.white70;
-        }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return const TextStyle(color: Colors.white, fontSize: 12);
           return const TextStyle(color: Colors.white60, fontSize: 12);

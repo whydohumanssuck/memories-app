@@ -24,7 +24,7 @@ class PhotoDetailScreen extends StatelessWidget {
                   : Image(
                       image: isLocal
                           ? FileImage(File(photo.url)) as ImageProvider
-                          : NetworkImage(photo.url),
+                          : NetworkImage(photo.url) as ImageProvider,
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 64),
                     ),

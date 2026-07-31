@@ -53,7 +53,7 @@ class AlbumCard extends StatelessWidget {
                           ? Image(
                                 image: coverPhoto!.url.startsWith('http')
                                     ? NetworkImage(coverPhoto.url) as ImageProvider
-                                    : FileImage(File(coverPhoto.url)),
+                                    : FileImage(File(coverPhoto.url)) as ImageProvider,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => Container(
@@ -85,7 +85,7 @@ class AlbumCard extends StatelessWidget {
                           'Tap to open',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? Colors.white60 : Theme.of(context).textTheme.bodySmall?.color,
+                            color: isDark ? Colors.white60 : null,
                           ),
                         ),
                       ],

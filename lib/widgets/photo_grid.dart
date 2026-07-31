@@ -41,8 +41,8 @@ class PhotoGrid extends StatelessWidget {
         (context, index) {
           final photo = photos[index];
           final ImageProvider imgProvider = photo.url.startsWith('http')
-              ? NetworkImage(photo.url)
-              : FileImage(File(photo.url));
+              ? NetworkImage(photo.url) as ImageProvider
+              : FileImage(File(photo.url)) as ImageProvider;
           return GestureDetector(
             onTap: () => onPhotoTap(photo),
             child: Hero(

@@ -80,7 +80,7 @@ class BinScreen extends StatelessWidget {
                                   child: Image(
                                     image: item.url.startsWith('http')
                                         ? NetworkImage(item.url) as ImageProvider
-                                        : FileImage(File(item.url)),
+                                        : FileImage(File(item.url)) as ImageProvider,
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => Container(
                                       color: Colors.grey.shade800,

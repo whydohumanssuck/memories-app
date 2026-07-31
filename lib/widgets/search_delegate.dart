@@ -74,8 +74,8 @@ class PhotoSearchDelegate extends SearchDelegate<Photo?> {
       itemBuilder: (context, index) {
         final photo = results[index];
         final ImageProvider imgProvider = photo.url.startsWith('http')
-            ? NetworkImage(photo.url)
-            : FileImage(File(photo.url));
+            ? NetworkImage(photo.url) as ImageProvider
+            : FileImage(File(photo.url)) as ImageProvider;
         return ListTile(
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8),

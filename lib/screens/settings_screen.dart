@@ -97,8 +97,8 @@ class SettingsScreen extends StatelessWidget {
                                   final index = theme.palettes.indexOf(palette);
                                   final isSelected = theme.activeIndex == index;
                                   final bool isDarkPalette = palette.name == 'AMOLED Black' || palette.name == 'Midnight Black';
-                                  final Color cardTextColor = isDarkPalette ? Colors.white : null;
-                                  final Color cardSubColor = isDarkPalette ? Colors.white70 : Colors.grey.shade600;
+                                  final Color? cardTextColor = isDarkPalette ? Colors.white : null;
+                                  final Color? cardSubColor = isDarkPalette ? Colors.white70 : null;
                                   return GestureDetector(
                                     onTap: () => theme.updateTheme(index),
                                     child: Container(
