@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
@@ -59,7 +58,7 @@ class _AppShellState extends State<AppShell> {
     if (index == _selectedIndex) return;
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
     );
     setState(() => _selectedIndex = index);
@@ -89,44 +88,41 @@ class _AppShellState extends State<AppShell> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(36),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(36),
-                color: isDark
-                    ? const Color(0xFF0D0D14).withOpacity(0.88)
-                    : Theme.of(context).colorScheme.surface.withOpacity(0.82),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(36),
+              color: isDark
+                  ? const Color(0xFF0D0D14).withOpacity(0.96)
+                  : Theme.of(context).colorScheme.surface.withOpacity(0.96),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+            child: NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onNavTap,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.photo_library_outlined),
+                  selectedIcon: Icon(Icons.photo_library),
+                  label: 'Gallery',
                 ),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-              child: NavigationBar(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: _onNavTap,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                destinations: const [
-                  NavigationDestination(
-                    icon: Icon(Icons.photo_library_outlined),
-                    selectedIcon: Icon(Icons.photo_library),
-                    label: 'Gallery',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.delete_outline),
-                    selectedIcon: Icon(Icons.delete),
-                    label: 'Bin',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.settings_outlined),
-                    selectedIcon: Icon(Icons.settings),
-                    label: 'Settings',
-                  ),
-                ],
-              ),
+                NavigationDestination(
+                  icon: Icon(Icons.delete_outline),
+                  selectedIcon: Icon(Icons.delete),
+                  label: 'Bin',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: 'Settings',
+                ),
+              ],
             ),
           ),
         ),

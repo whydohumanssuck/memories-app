@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/photo.dart';
@@ -73,21 +74,30 @@ class PhotoSearchDelegate extends SearchDelegate<Photo?> {
       itemCount: results.length,
       itemBuilder: (context, index) {
         final photo = results[index];
-        final ImageProvider imgProvider = photo.url.startsWith('http')
-            ? NetworkImage(photo.url) as ImageProvider
-            : FileImage(File(photo.url)) as ImageProvider;
         return ListTile(
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image(
-              image: imgProvider,
+            child: SizedBox(
               width: 48,
               height: 48,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: Colors.grey.shade200,
-                child: const Icon(Icons.broken_image, size: 24),
-              ),
+              child: photo.url.startsWith('http')
+                  ? CachedNetworkImage(
+                      imageUrl: photo.url,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 120,
+                      errorWidget: (_, __, ___) => Container(
+                        color: Colors.grey.shade200,
+                        child: const Icon(Icons.broken_image, size: 24),
+                      ),
+                    )
+                  : Image(
+                      image: FileImage(File(photo.url)),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey.shade200,
+                        child: const Icon(Icons.broken_image, size: 24),
+                      ),
+                    ),
             ),
           ),
           title: Text(photo.title),

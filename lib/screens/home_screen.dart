@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/photo.dart';
+import '../providers/device_media_provider.dart';
 import '../providers/gallery_provider.dart';
 import '../widgets/album_card.dart';
+import '../widgets/device_media_grid.dart';
 import '../widgets/photo_grid.dart';
 import 'photo_detail_screen.dart';
 import '../widgets/search_delegate.dart';
@@ -17,6 +19,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _albumController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<DeviceMediaProvider>(context, listen: false).loadMedia();
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -35,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final picker = Provider.of<GalleryProvider>(context, listen: false);
     final ImagePicker imagePicker = ImagePicker();
 
-    // Show dialog to choose camera or gallery
     final source = await showDialog<ImageSource>(
       context: context,
       builder: (context) => AlertDialog(
@@ -104,8 +115,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Consumer<GalleryProvider>(
-      builder: (context, gallery, child) {
+    return Consumer2<GalleryProvider, DeviceMediaProvider>(
+      builder: (context, gallery, deviceMedia, child) {
         final currentAlbum = gallery.selectedAlbum;
         final photos = gallery.selectedPhotos;
         return SafeArea(
@@ -156,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     children: [
                       Text(
-                        '${gallery.totalPhotos} photos',
+                        '${gallery.totalPhotos} curated photos',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isDark ? Colors.white60 : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -173,43 +184,128 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              // === DEVICE MEDIA SECTION ===
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  child: Row(
                     children: [
                       Text(
-                        currentAlbum?.title ?? 'No Album',
+                        'Your Photos & Videos',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: isDark ? Colors.white : null,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 140,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: gallery.albums.length,
-                          itemBuilder: (context, index) {
-                            final album = gallery.albums[index];
-                            return AlbumCard(
-                              album: album,
-                              isSelected: currentAlbum?.id == album.id,
-                              onTap: () => gallery.selectAlbum(album.id),
-                              onRename: () => _showRenameAlbumDialog(context, album.id, album.title),
-                              onRemove: () => gallery.removeAlbum(album.id),
-                            );
-                          },
+                      const Spacer(),
+                      if (deviceMedia.state == DeviceMediaState.loaded && deviceMedia.assets.isNotEmpty)
+                        Text(
+                          '${deviceMedia.assets.length}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.white60 : Colors.grey.shade600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
+              if (deviceMedia.state == DeviceMediaState.idle ||
+                  deviceMedia.state == DeviceMediaState.loading)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                ),
+              if (deviceMedia.state == DeviceMediaState.denied)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E1E24).withOpacity(0.6) : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.photo_library_outlined, color: isDark ? Colors.white70 : null),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Allow photo access',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white : null,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Tap allow to see your photos and videos here.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? Colors.white60 : Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                Provider.of<DeviceMediaProvider>(context, listen: false).loadMedia(),
+                            child: const Text('Allow'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              if (deviceMedia.state == DeviceMediaState.loaded)
+                DeviceMediaGrid(assets: deviceMedia.assets),
+              // === ALBUMS SECTION ===
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                  child: Text(
+                    'Albums',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : null,
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    height: 140,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: gallery.albums.length,
+                      itemBuilder: (context, index) {
+                        final album = gallery.albums[index];
+                        return AlbumCard(
+                          album: album,
+                          isSelected: currentAlbum?.id == album.id,
+                          onTap: () => gallery.selectAlbum(album.id),
+                          onRename: () => _showRenameAlbumDialog(context, album.id, album.title),
+                          onRemove: () => gallery.removeAlbum(album.id),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: PhotoGrid(
@@ -233,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openPhotoDetail(BuildContext context, Photo photo) {
     Navigator.of(context).push(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 550),
+        transitionDuration: const Duration(milliseconds: 300),
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
