@@ -127,6 +127,118 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onPhotoTap(Photo photo) {
+    if (_isSelecting) {
+      setState(() {
+        _selectedPhotoIds.contains(photo.id)
+            ? _selectedPhotoIds.remove(photo.id)
+            : _selectedPhotoIds.add(photo.id);
+      });
+      return;
+    }
+    final motionEnabled = Provider.of<SettingsProvider>(context, listen: false).useSystemMotion;
+    _openPhotoDetail(context, photo, motionEnabled);
+  }
+
+  void _onPhotoLongPress(Photo photo) {
+    setState(() {
+      _selectedPhotoIds.add(photo.id);
+    });
+  }
+
+  void _clearSelection() {
+    setState(() => _selectedPhotoIds.clear());
+  }
+
+  List<Photo> _selectedPhotos() {
+    final gallery = Provider.of<GalleryProvider>(context, listen: false);
+    return gallery.selectedPhotos
+        .where((photo) => _selectedPhotoIds.contains(photo.id))
+        .toList();
+  }
+
+  Future<void> _showAddToAlbumDialog() async {
+    final gallery = Provider.of<GalleryProvider>(context, listen: false);
+    final selected = _selectedPhotos();
+    if (selected.isEmpty) {
+      _clearSelection();
+      return;
+    }
+    final currentAlbum = gallery.selectedAlbum;
+    final albums = gallery.albums.where((a) => a.id != currentAlbum?.id).toList();
+    if (albums.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No other albums to add to. Create one first.')),
+      );
+      return;
+    }
+    final Album? chosen = await showDialog<Album>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add to album'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: albums.length,
+              itemBuilder: (context, index) {
+                final album = albums[index];
+                return ListTile(
+                  leading: const Icon(Icons.album_outlined),
+                  title: Text(album.title),
+                  onTap: () => Navigator.pop(context, album),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+    if (chosen == null) return;
+    gallery.addPhotosToAlbum(selected, chosen.id);
+    _clearSelection();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Added ${selected.length} photo(s) to ${chosen.title}')),
+      );
+    }
+  }
+
+  Future<void> _confirmDeleteSelected() async {
+    final selected = _selectedPhotos();
+    if (selected.isEmpty) {
+      _clearSelection();
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Photos'),
+          content: Text('Move ${selected.length} selected photo(s) to the bin?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed == true) {
+      Provider.of<GalleryProvider>(context, listen: false).deletePhotos(selected);
+      _clearSelection();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

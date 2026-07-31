@@ -78,11 +78,11 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
 
   Future<void> _openAddPhotoDialog(BuildContext context, Album album) async {
     final picker = ImagePicker();
-    final List<XFile> picked;
+    List<XFile> picked = <XFile>[];
     try {
       picked = await picker.pickMultiImage(imageQuality: 90);
     } catch (_) {
-      picked = <XFile>[];
+      // ignore picker errors
     }
     if (picked.isEmpty) return;
 
